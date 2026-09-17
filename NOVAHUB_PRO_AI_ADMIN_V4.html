@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NOVA//HUB</title>
+<style>
+:root{--a:#7c5cff;--bg:#080a12;--panel:#101421;--text:#f5f7ff;--muted:#9da5bc;--line:#242a3d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 20% 0%,#1b1740 0,#080a12 42%);color:var(--text);font:15px system-ui,Arial,sans-serif}
+header{position:sticky;top:0;z-index:20;backdrop-filter:blur(16px);background:#080a12cc;border-bottom:1px solid var(--line);padding:15px 5%;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:900;letter-spacing:2px}.logo span{color:var(--a)}button{border:0;border-radius:12px;padding:11px 15px;background:var(--a);color:white;font-weight:800;cursor:pointer}button:hover{filter:brightness(1.12)}
+main{max-width:1100px;margin:auto;padding:45px 18px}.hero{padding:35px 0 25px}.hero h1{font-size:clamp(40px,8vw,78px);line-height:.95;margin:10px 0}.hero p{color:var(--muted);font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.panel{background:#101421e8;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 15px 45px #0004}.panel h2{margin-top:0}
+input,textarea{width:100%;background:#080b14;border:1px solid var(--line);color:var(--text);border-radius:12px;padding:12px;outline:none}textarea{min-height:100px;resize:vertical}
+.calc-display{font-size:25px;text-align:right;margin-bottom:10px}.calc{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.calc button{background:#191f31}.calc .go{background:var(--a)}
+.chat{height:300px;overflow:auto;background:#080b14;border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}.msg{padding:10px 12px;margin:7px 0;border-radius:12px;max-width:88%;white-space:pre-wrap}.you{background:#242b42;margin-left:auto}.ai{background:#171d2d;border:1px solid #293149}
+.row{display:flex;gap:8px}.row>*{flex:1}.muted{color:var(--muted)}.tag{display:inline-block;padding:5px 9px;border-radius:999px;background:#191f31;color:#bfc6db;margin:3px}
+#vault[hidden],#admin[hidden]{display:none!important}
+.gamegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px}.game{background:#151b2b;border:1px solid var(--line);padding:15px;border-radius:14px;cursor:pointer}.game b{display:block;margin-top:8px}
+.drawer{position:fixed;right:0;top:0;width:min(390px,92vw);height:100%;z-index:50;background:#0c0f19;border-left:1px solid var(--line);padding:22px;box-shadow:-20px 0 70px #0009;overflow:auto}.overlay{position:fixed;inset:0;background:#0008;z-index:45}
+.small{font-size:12px;color:var(--muted)}
+footer{text-align:center;color:#68718a;padding:40px}
+
+/* NOVA V3 */
+.nav-actions{display:flex;gap:8px;align-items:center}
+.iconbtn{padding:9px 11px;background:#151b2b;border:1px solid var(--line)}
+.hero{position:relative}.hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:5%;top:20px;background:var(--a);opacity:.1;filter:blur(35px);pointer-events:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:18px}
+.kpi{padding:14px;border:1px solid var(--line);border-radius:16px;background:#0c101b}.kpi b{font-size:24px;display:block}
+.game{transition:.18s}.game:hover{transform:translateY(-2px);border-color:var(--a)}
+.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:#55e07a;box-shadow:0 0 12px #55e07a;margin-right:6px}
+@media(max-width:600px){.hero h1{font-size:48px}.panel{padding:16px}}
+</style>
+</head>
+<body>
+<header><div class="logo" onclick="window.scrollTo({top:0,behavior:"smooth"})">NOVA<span>//</span>HUB</div>
+<div class="nav-actions"><button class="iconbtn" onclick="toggleTheme()">🌙</button><button onclick="openSettings()">Kişiselleştir</button></div></header>
+
+<main>
+<section class="hero">
+<div class="tag">YOUR DIGITAL SPACE</div>
+<h1>Build your<br><span style="color:var(--a)">own space.</span></h1>
+<p>Araçlar, NOVA AI, oyunlar ve sana özel alan — tek yerde.</p>
+<div class="kpis"><div class="kpi"><span class="small">Durum</span><b><span class="pulse"></span>Online</b></div>
+<div class="kpi"><span class="small">Oyun</span><b id="gameCount">200</b></div>
+<div class="kpi"><span class="small">AI istekleri</span><b id="heroAI">0</b></div></div>
+</section>
+
+<div class="grid">
+<section class="panel">
+<h2>🧮 Hızlı Hesap</h2>
+<input id="calcDisplay" class="calc-display" value="0" readonly>
+<div class="calc">
+<button onclick="calcIn('7')">7</button><button onclick="calcIn('8')">8</button><button onclick="calcIn('9')">9</button><button onclick="calcIn('/')">÷</button>
+<button onclick="calcIn('4')">4</button><button onclick="calcIn('5')">5</button><button onclick="calcIn('6')">6</button><button onclick="calcIn('*')">×</button>
+<button onclick="calcIn('1')">1</button><button onclick="calcIn('2')">2</button><button onclick="calcIn('3')">3</button><button onclick="calcIn('-')">−</button>
+<button onclick="calcClear()">C</button><button onclick="calcIn('0')">0</button><button class="go" onclick="calcEqual()">=</button><button onclick="calcIn('+')">+</button>
+</div><p class="small">İpucu: özel kodlar hesap makinesinden açılabilir.</p>
+</section>
+
+<section class="panel">
+<h2>📝 Notlar</h2><textarea id="notes" placeholder="Buraya notlarını yaz..."></textarea>
+<button style="margin-top:10px" onclick="saveNotes()">Kaydet</button>
+<span id="saved" class="small"></span>
+</section>
+
+<section class="panel">
+<h2>🤖 NOVA AI</h2>
+<div id="chat" class="chat"><div class="msg ai">Selam! Ben NOVA. Matematik, ders, teknoloji, oyun fikirleri veya site hakkında sorunu yaz. 🚀</div></div>
+<div class="row"><input id="question" placeholder="NOVA'ya bir şey sor..." onkeydown="if(event.key==='Enter')askAI()"><button onclick="askAI()">Sor</button></div>
+<p class="small">Yerel demo asistan: hazır bilgi ve hesaplama komutlarıyla çalışır.</p>
+</section>
+</div>
+
+<section id="vault" class="panel" hidden style="margin-top:18px">
+<h2>🎮 Oyun Merkezi</h2><p class="muted">Keşif alanı açıldı.</p>
+<input id="gameSearch" placeholder="🔎 Oyun ara..." oninput="renderGames()">
+<div id="games" class="gamegrid"></div>
+</section>
+
+<section id="admin" class="panel" hidden style="margin-top:18px">
+<h2>👑 NOVA//HUB Control Center</h2>
+<p class="muted">Site sahibi yönetim alanı • <span id="adminClock">--:--</span></p>
+
+<div class="grid" style="margin-top:14px">
+<div class="panel"><h3>📊 Dashboard</h3><p>Oturum: <b>OWNER</b></p><p>Yerel ziyaret: <b id="adminVisits">0</b></p><p>AI istekleri: <b id="aiCount">0</b></p></div>
+<div class="panel"><h3>🟢 Sistem Durumu</h3><p>Arayüz: <b>Online</b></p><p>Yerel kayıt: <b>Aktif</b></p><p>Oyun merkezi: <b>Hazır</b></p></div>
+<div class="panel"><h3>🎨 Tema</h3><button onclick="openSettings()">Tema / renk düzenle</button></div>
+
+<div class="panel"><h3>📣 Duyuru</h3><input id="announcement" placeholder="Siteye duyuru yaz..."><button style="margin-top:8px" onclick="saveAnnouncement()">Yayınla</button><p id="announcementState" class="small"></p></div>
+<div class="panel"><h3>📝 Hızlı Not</h3><input id="adminQuickNote" placeholder="Admin notu..."><button style="margin-top:8px" onclick="saveAdminQuickNote()">Kaydet</button></div>
+<div class="panel"><h3>🎮 Oyun Yönetimi</h3><p class="muted">Oyun merkezi toplamı: <b>200</b></p><button onclick="openVault()">Oyun merkezini aç</button></div>
+
+<div class="panel"><h3>🤖 AI Ayarları</h3><p class="muted">Asistan modu</p><select id="aiMode" style="width:100%;padding:11px;border-radius:10px;background:#080b14;color:white;border:1px solid var(--line)"><option>Akıllı / Dengeli</option><option>Kısa cevap</option><option>Detaylı cevap</option></select><button style="margin-top:8px" onclick="saveAIMode()">Kaydet</button></div>
+<div class="panel"><h3>📦 Veri Dışa Aktar</h3><p class="muted">Notlar, ayarlar ve admin verilerini JSON olarak hazırlar.</p><button onclick="exportData()">JSON oluştur</button></div>
+<div class="panel"><h3>📋 Aktivite</h3><p id="activityText" class="muted">Son işlem: Panel açıldı.</p><button onclick="clearActivity()">Aktiviteyi temizle</button></div>
+
+<div class="panel"><h3>🔔 Bildirim</h3><button onclick="siteNotify('NOVA bildirim sistemi çalışıyor!')">Test bildirimi</button></div>
+<div class="panel"><h3>🔒 Güvenlik</h3><p class="muted">Admin oturumu bu sayfada yereldir.</p><button onclick="lockAdmin()">Paneli kilitle</button></div>
+<div class="panel"><h3>🧹 Önbellek / Veriler</h3><button onclick="clearLocalData()">Yerel site verilerini temizle</button></div>
+
+<div class="panel"><h3>🖥️ Site Modu</h3><button id="maintenanceBtn" onclick="toggleMaintenance()">Bakım modunu değiştir</button><p id="maintenanceState" class="small"></p></div>
+<div class="panel"><h3>🔗 Hızlı İşlemler</h3><button onclick="window.scrollTo({top:0,behavior:'smooth'})">Ana sayfaya git</button> <button onclick="openSettings()">Ayarlar</button></div>
+<div class="panel"><h3>🚪 Oturum</h3><p class="muted">Kontrol panelinden çıkmak için aşağıdaki butonu kullan.</p><button onclick="lockAdmin()">Çıkış / Kilitle</button></div>
+</div>
+</section>
+</main>
+<footer>NOVA//HUB • kişisel dijital alan • AI + OWNER CONTROL</footer>
+
+<script>
+const games = [
+["Snake","🐍"],["2048","🔢"],["Tetris","🧱"],["Mines","💣"],["Flappy","🐦"],["Memory","🧠"],["Pong","🏓"],["Clicker","🖱️"],
+["Runner","🏃"],["Dino","🦖"],["Blocks","🟦"],["Maze","🌀"],["Quiz","❓"],["Cards","🃏"],["Space","🚀"],["Racer","🏎️"],
+["Tower","🏰"],["Breakout","🎯"],["Jump","🦘"],["Pixel","👾"],["Chess","♟️"],["Checkers","⚫"],["Word","🔤"],["Sudoku","9️⃣"],
+["Basket","🏀"],["Football","⚽"],["Golf","⛳"],["Fishing","🎣"],["Helicopter","🚁"],["Jet","✈️"],["Tank","🛡️"],["Ninja","🥷"],
+["Zombie","🧟"],["Alien","👽"],["Robot","🤖"],["Battle","⚔️"],["Island","🏝️"],["Cave","🕳️"],["Fire","🔥"],["Ice","❄️"]
+];
+while(games.length<200) games.push(["NOVA Mini "+(games.length+1),"🎮"]);
+
+let expr="";
+const display=document.getElementById("calcDisplay");
+function show(){display.value=expr||"0"}
+function calcIn(x){
+ expr+=x; show();
+ // Secret game code opens immediately after the fourth zero.
+ if(expr==="0000") openVault();
+ // Admin code opens immediately when fully entered.
+ if(expr==="102030302010") openAdmin();
+}
+function calcClear(){expr="";show()}
+function calcEqual(){
+ if(expr==="0000"){openVault();return}
+ if(expr==="102030302010"){openAdmin();return}
+ try{
+   if(!/^[0-9+*/().% -]+$/.test(expr)) throw 0;
+   const result=Function('"use strict";return ('+expr+')')();
+   expr=String(result);
+ }catch{expr="Hata"}
+ show();
+}
+document.addEventListener("keydown",e=>{
+ if(/^[0-9]$/.test(e.key))calcIn(e.key);
+ else if("+-*/().%".includes(e.key))calcIn(e.key);
+ else if(e.key==="Enter")calcEqual();
+ else if(e.key==="Backspace"){expr=expr.slice(0,-1);show()}
+ else if(e.key==="Escape")calcClear();
+});
+
+function openVault(){
+ const v=document.getElementById("vault");
+ v.hidden=false;
+ renderGames();
+ setTimeout(()=>v.scrollIntoView({behavior:"smooth",block:"start"}),50);
+}
+function openAdmin(){
+ const a=document.getElementById("admin");
+ updateAdminStats();
+ document.getElementById("aiMode").value=localStorage.getItem("novaAIMode")||"Akıllı / Dengeli";
+ a.hidden=false;
+ setTimeout(()=>a.scrollIntoView({behavior:"smooth",block:"start"}),50);
+}
+function renderGames(){
+ const q=(document.getElementById("gameSearch")?.value||"").toLowerCase();
+ document.getElementById("games").innerHTML=games.map((g,i)=>({g,i}))
+ .filter(x=>x.g[0].toLowerCase().includes(q))
+ .map(x=>`<div class="game" onclick="playGame(${x.i})"><span style="font-size:28px">${x.g[1]}</span><b>${x.g[0]}</b><span class="small">Mini oyun</span></div>`).join("");
+}
+function playGame(i){
+ alert(games[i][1]+" "+games[i][0]+"\\n\\nBu oyun kartı NOVA//HUB'un oyun alanında. Yeni mini oyunlar eklenebilir.");
+}
+
+function saveNotes(){localStorage.setItem("novaNotes",document.getElementById("notes").value);document.getElementById("saved").textContent=" ✓ Kaydedildi"}
+document.getElementById("notes").value=localStorage.getItem("novaNotes")||"";
+
+function askAI(){
+ localStorage.setItem("novaAICount",String(Number(localStorage.getItem("novaAICount")||0)+1));
+ const inp=document.getElementById("question"), q=inp.value.trim(); if(!q)return;
+ addMsg(q,"you"); inp.value="";
+ const a=localAI(q); setTimeout(()=>addMsg(a,"ai"),180);
+}
+function addMsg(t,c){const box=document.getElementById("chat");const d=document.createElement("div");d.className="msg "+c;d.textContent=t;box.appendChild(d);box.scrollTop=box.scrollHeight}
+function localAI(q){
+ const raw=q.trim(), s=raw.toLowerCase();
+
+ // Greetings / identity
+ if(/^(merhaba|selam|sa|s.a|hey|hello|hi)\b/.test(s))
+   return "Selam kankam! 👋 Ben NOVA. Ders, matematik, teknoloji, Minecraft, PUBG, site fikirleri ve günlük sorularda yardımcı olabilirim. Ne yapmak istiyorsun?";
+ if(s.includes("nesin")||s.includes("kimsin"))
+   return "Ben NOVA AI 🤖. Bu sitenin akıllı asistanıyım. Sorunu analiz edip mümkün olduğunca anlaşılır bir cevap vermeye çalışıyorum.";
+
+ // Simple math engine
+ const mathExpr=raw.replace(/,/g,".").match(/^\s*([-+]?\d+(?:\.\d+)?)\s*(\+|-|x|\*|\/|÷|%)\s*([-+]?\d+(?:\.\d+)?)\s*$/);
+ if(mathExpr){
+   const a=Number(mathExpr[1]), op=mathExpr[2], b=Number(mathExpr[3]);
+   let r;
+   if(op==="+")r=a+b; else if(op==="-")r=a-b; else if(op==="x"||op==="*")r=a*b;
+   else if(op==="/"||op==="÷")r=b===0?"Sıfıra bölme yapılamaz.":a/b;
+   else r=a%b;
+   return "🧮 Sonuç: "+r;
+ }
+ if(/(matematik|denklem|kesir|yüzde|çarpma|bölme|toplama|çıkarma)/.test(s))
+   return "🧮 Matematik sorunu gönder. Örneğin “125 × 8” veya “240'ın %25'i kaç?” yazabilirsin; işlemi adım adım açıklayabilirim.";
+
+ // Percent
+ const pct=s.match(/(\d+(?:[.,]\d+)?)\s*(?:%|yüzde)\s*(?:[üu]?)\s*(\d+(?:[.,]\d+)?)/);
+ if(pct) return "📊 Hesaplamak istediğin yüzdeyi “200'ün %15'i” gibi yazarsan sonucu çıkarabilirim.";
+
+ // School help
+ if(/(fen|bilim|hücre|organell|dünya|gezegen)/.test(s))
+   return "🔬 Fen için konuyu yaz: hücre ve organeller, canlıların yapısı, Dünya'nın katmanları gibi konuları 5. sınıf seviyesinde sade şekilde anlatabilirim.";
+ if(/(türkçe|gramer|fiil|sözcük|paragraf)/.test(s))
+   return "📚 Türkçe sorunu gönder. Paragraf, sözcük anlamı, cümle bilgisi ve dil bilgisi konularında örneklerle yardımcı olabilirim.";
+ if(/(ingilizce|english|have|has|simple present)/.test(s))
+   return "🇬🇧 İngilizce için cümleni yaz. Have/has, Simple Present, olumlu-olumsuz cümleler ve günlük konuşma örneklerini açıklayabilirim.";
+ if(/(din|namaz|sure|dua|abdest)/.test(s))
+   return "🕌 Din dersi sorunu yaz. Namaz, sureler ve temel kavramları ders seviyesinde açıklayabilirim.";
+
+ // Gaming
+ if(/(minecraft|mc\b|bedrock|java|smp|sunucu|redstone)/.test(s))
+   return "⛏️ Minecraft modu açıldı! Java/Bedrock, survival, redstone, komutlar, sunucu fikirleri ve oyun mekanikleri hakkında sorunu yaz.";
+ if(/(pubg|pugb|battle royale|hassasiyet|gyro|jiroskop)/.test(s))
+   return "🎯 PUBG modu açıldı! Hassasiyet, jiroskop, HUD, FPS ve oyun içi taktikler konusunda genel öneriler verebilirim.";
+ if(/(brawl|bs\b|brawl stars)/.test(s))
+   return "⭐ Brawl Stars modu açıldı! Harita, karakter, mod ve oyun stratejileri hakkında konuşabiliriz.";
+ if(/(oyun|game)/.test(s))
+   return "🎮 Oyun fikri mi arıyorsun? Türü söyle: yarış, bulmaca, PvP, korku olmayan macera, idle veya arcade gibi seçeneklerden bir fikir geliştirebiliriz.";
+
+ // Technology
+ if(/(telefon|android|oppo|samsung|redmagic|fps|ram|depolama)/.test(s))
+   return "📱 Teknoloji modu: telefon karşılaştırması, Android ayarları, depolama, RAM ve oyun performansı gibi konularda yardımcı olabilirim. Modelini ve ne yapmak istediğini yaz.";
+ if(/(html|css|javascript|js|site|web|kod)/.test(s))
+   return "💻 Web modu açıldı! HTML/CSS/JavaScript ile arayüz, buton, animasyon, hesap makinesi, panel ve mini araçlar tasarlayabiliriz.";
+
+ // Site
+ if(/(nova|site|admin|kontrol paneli|kişiselleştir)/.test(s))
+   return "🚀 NOVA//HUB'da şu anda AI, notlar, hesap makinesi, gizli oyun merkezi ve yönetim paneli bulunuyor. Admin paneli özel kodla açılır.";
+
+ // General helpful fallback with intent detection
+ if(/^(neden|niye|nasıl|nasıl yapılır|ne|nedir|kim|kaç|hangi)\b/.test(s))
+   return "🤖 Sorunu anladım. Daha net cevap verebilmem için konuya küçük bir ayrıntı ekle. Örneğin “OPPO'da geliştirici seçenekleri nasıl açılır?” gibi.";
+ if(/teşekkür|sağ ol|eyvallah/.test(s))
+   return "Rica ederim kankam 😎 Başka bir şey varsa NOVA burada.";
+ if(/yardım|help/.test(s))
+   return "🧠 Tabii! Bana doğrudan soru sor. Matematik işlemi, ders konusu, teknoloji, oyun veya NOVA//HUB hakkında yardımcı olabilirim.";
+
+ return "🤔 Bunu tam olarak çözemedim. Soruyu biraz daha açık yazarsan analiz edeyim. Örnek: “Minecraft'ta redstone kapısı nasıl çalışır?”, “250'nin %20'si kaç?” veya “HTML'de buton nasıl yapılır?”";
+}
+
+
+function adminActivity(t){localStorage.setItem("novaActivity",t);const el=document.getElementById("activityText");if(el)el.textContent="Son işlem: "+t}
+function updateAdminStats(){
+ const v=Number(localStorage.getItem("novaVisits")||0)+1;localStorage.setItem("novaVisits",v);
+ document.getElementById("adminVisits").textContent=v;
+ document.getElementById("aiCount").textContent=localStorage.getItem("novaAICount")||0;
+ document.getElementById("activityText").textContent="Son işlem: "+(localStorage.getItem("novaActivity")||"Panel açıldı.");
+ document.getElementById("announcementState").textContent=localStorage.getItem("novaAnnouncement")||"Henüz duyuru yok.";
+ document.getElementById("maintenanceState").textContent=localStorage.getItem("novaMaintenance")==="1"?"⚠️ Bakım modu AÇIK":"Normal mod";
+}
+function saveAnnouncement(){const v=document.getElementById("announcement").value.trim();if(!v)return;localStorage.setItem("novaAnnouncement",v);document.getElementById("announcementState").textContent="Yayınlandı: "+v;adminActivity("Duyuru yayınlandı");siteNotify("Duyuru kaydedildi.");}
+function saveAdminQuickNote(){const v=document.getElementById("adminQuickNote").value.trim();localStorage.setItem("novaAdminNote",v);adminActivity("Admin notu kaydedildi");siteNotify("Admin notu kaydedildi.");}
+function saveAIMode(){localStorage.setItem("novaAIMode",document.getElementById("aiMode").value);adminActivity("AI modu değiştirildi");siteNotify("AI ayarı kaydedildi.");}
+function exportData(){
+ const data={notes:localStorage.getItem("novaNotes")||"",name:localStorage.getItem("novaName")||"",color:localStorage.getItem("novaColor")||"",announcement:localStorage.getItem("novaAnnouncement")||"",adminNote:localStorage.getItem("novaAdminNote")||"",aiMode:localStorage.getItem("novaAIMode")||"Akıllı / Dengeli",activity:localStorage.getItem("novaActivity")||""};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="nova-hub-data.json";a.click();URL.revokeObjectURL(url);adminActivity("Veriler dışa aktarıldı");
+}
+function clearActivity(){localStorage.removeItem("novaActivity");adminActivity("Aktivite temizlendi");}
+function toggleMaintenance(){const on=localStorage.getItem("novaMaintenance")==="1";localStorage.setItem("novaMaintenance",on?"0":"1");updateAdminStats();adminActivity(on?"Bakım modu kapatıldı":"Bakım modu açıldı");}
+function clearLocalData(){if(confirm("Yerel NOVA//HUB verileri temizlensin mi?")){localStorage.clear();location.reload()}}
+function siteNotify(t){const n=document.createElement("div");n.textContent=t;n.style.cssText="position:fixed;right:18px;bottom:18px;z-index:100;background:#171d2d;border:1px solid var(--a);padding:14px 18px;border-radius:14px;box-shadow:0 15px 40px #0008;font-weight:700";document.body.appendChild(n);setTimeout(()=>n.remove(),2200)}
+function lockAdmin(){document.getElementById("admin").hidden=true;adminActivity("Admin paneli kilitlendi");window.scrollTo({top:0,behavior:"smooth"});}
+setInterval(()=>{const el=document.getElementById("adminClock");if(el)el.textContent=new Date().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})},1000);
+
+function openSettings(){
+ const old=document.getElementById("settingsDrawer"); if(old)old.remove();
+ const ov=document.createElement("div");ov.className="overlay";ov.id="settingsOverlay";ov.onclick=closeSettings;
+ const dr=document.createElement("div");dr.className="drawer";dr.id="settingsDrawer";
+ dr.innerHTML=`<h2>🎨 Kişiselleştir</h2><p class="muted">NOVA//HUB'u kendine göre ayarla.</p>
+ <label>İsim</label><input id="setName" value="${localStorage.getItem("novaName")||""}" placeholder="İsmin">
+ <br><br><label>Vurgu rengi</label><input id="setColor" type="color" value="${localStorage.getItem("novaColor")||"#7c5cff"}">
+ <br><br><button onclick="applySettings()">Uygula</button> <button onclick="closeSettings()">Kapat</button>`;
+ document.body.append(ov,dr);
+}
+function applySettings(){
+ const n=document.getElementById("setName").value.trim(),c=document.getElementById("setColor").value;
+ localStorage.setItem("novaName",n);localStorage.setItem("novaColor",c);document.documentElement.style.setProperty("--a",c);closeSettings();
+}
+function closeSettings(){document.getElementById("settingsDrawer")?.remove();document.getElementById("settingsOverlay")?.remove()}
+document.documentElement.style.setProperty("--a",localStorage.getItem("novaColor")||"#7c5cff");
+
+function toggleTheme(){const x=localStorage.getItem("novaLight")==="1";localStorage.setItem("novaLight",x?"0":"1");document.body.style.filter=x?"":"brightness(1.08)";siteNotify(x?"🌙 Koyu görünüm aktif":"☀️ Aydınlık görünüm aktif")}
+function refreshV3(){const a=document.getElementById("heroAI"),g=document.getElementById("gameCount");if(a)a.textContent=localStorage.getItem("novaAICount")||0;if(g)g.textContent=games.length}
+const novaAskAI=askAI;askAI=function(){novaAskAI();refreshV3()};refreshV3();
+if(localStorage.getItem("novaLight")==="1")document.body.style.filter="brightness(1.08)";
+</script>
+</body>
+</html>
